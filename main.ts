@@ -20,10 +20,13 @@ const ENTRY =
 // Gate guard: the sealed scorer only accepts UTF-8 text of 1 to 200
 // characters, not only white space, and the brief asks for ONE line —
 // a stray newline would split the excuse in two. Fail loudly here
-// rather than writing an invalid entry.
-if (ENTRY.length < 1 || ENTRY.length > 200 || !ENTRY.trim()) {
+// rather than writing an invalid entry. Length is counted in Unicode
+// code points ([...ENTRY].length), the same count the scorer sees, so a
+// line with astral characters cannot slip past the guard.
+const ENTRY_LENGTH = [...ENTRY].length;
+if (ENTRY_LENGTH < 1 || ENTRY_LENGTH > 200 || !ENTRY.trim()) {
   throw new Error(
-    `ENTRY must be 1-200 non-blank characters, got ${ENTRY.length}: ${JSON.stringify(ENTRY)}`,
+    `ENTRY must be 1-200 non-blank characters, got ${ENTRY_LENGTH}: ${JSON.stringify(ENTRY)}`,
   );
 }
 if (ENTRY.includes("\n") || ENTRY.includes("\r")) {
@@ -36,4 +39,4 @@ const outFile = join(outDir, "entry.txt");
 mkdirSync(outDir, { recursive: true });
 writeFileSync(outFile, ENTRY + "\n", "utf8");
 
-console.log(`Wrote ${[...ENTRY].length} characters to ${outFile}`);
+console.log(`Wrote ${ENTRY_LENGTH} characters to ${outFile}`);
